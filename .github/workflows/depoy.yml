@@ -56,7 +56,7 @@ jobs:
           done
       - name: Push Config Files
         run: |
-          find "$SERVER" -mindepth 3 -type f ! -name "compose.yaml" ! -name "truenas.json" | while read -r f; do
+          find "$SERVER" -mindepth 3 -type f ! -name "compose.yaml" ! -name "override.json" | while read -r f; do
             CONTAINER_DIR="$(echo "$f" | cut -d'/' -f1-3)/"
             APP=$(basename "$(dirname "$CONTAINER_DIR")")
             SERVICE=$(basename "$CONTAINER_DIR")
@@ -70,7 +70,7 @@ jobs:
           done
       - name: Update App Environments & Labels
         run: |
-          find "$SERVER" -name "truenas.json" | while read -r f; do
+          find "$SERVER" -name "override.json" | while read -r f; do
             APP=$(basename "$(dirname "$f")")
             curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" -d @"$f"
             echo "✓ $APP"
