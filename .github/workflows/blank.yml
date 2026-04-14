@@ -1,0 +1,71 @@
+name: Deploy
+
+on:
+  push:
+    paths:
+      - '**'
+
+jobs:
+  changed-files:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.changed-files.outputs.all_changed_files }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check Changed Files
+        uses: tj-actions/changed-files@v47
+        id: changed-files
+        with:
+          dir_names: true
+          dir_names_max_depth: 1
+          dir_names_exclude_current_dir: true
+          files_ignore: '.*/**'
+          matrix: true
+
+  deploy:
+    if: needs.changed-files.outputs.matrix != '[]'
+    needs: [changed-files]
+    runs-on: [self-hosted, "${{ matrix.target }}"]
+    strategy:
+      fail-fast: false
+      matrix: 
+        target: ${{ fromJSON(needs.changed-files.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup SOPS
+        uses: nhedger/setup-sops@v2
+      - name: Deploy
+        env:
+          SOPS_AGE_KEY: ${{ secrets[format('AGE_KEY_{0}', matrix.target)] }}
+        run: |
+          set -euo pipefail
+          for app_dir in "${{ matrix.target }}"/*/; do
+            [ -d "$app_dir" ] || continue
+            APP=$(basename "$app_dir")
+            echo "── $APP"
+            for container_dir in "$app_dir"*/; do
+              [ -d "$container_dir" ] || continue
+              CONTAINER=$(basename "$container_dir")
+              echo "  ▸ $CONTAINER"
+              find "$container_dir" -type f ! -name "truenas.json" | while read -r f; do
+                sops --decrypt "$f" > /tmp/decrypted 2>/dev/null \
+                  || cp "$f" /tmp/decrypted
+                docker inspect "$CONTAINER" &>/dev/null \
+                  && docker cp /tmp/decrypted "$CONTAINER:/${f#$container_dir}" \
+                  && echo "    ✓ /${f#$container_dir}" || echo "    ⚠ $CONTAINER not running"
+              done
+              [ -f "${container_dir}truenas.json" ] || continue
+              CONFIG=$(sops --decrypt "${container_dir}truenas.json" 2>/dev/null \
+                || cat "${container_dir}truenas.json")
+              curl -fks \
+                -H "Authorization: Bearer $TRUENAS_API_KEY" \
+                -H "Content-Type: application/json" \
+                -X PUT "$TRUENAS_HOST/api/v2.0/app/$CONTAINER" \
+                -d "$(echo "$CONFIG" | jq '{values:{containerConfig:{env: [.env//{}|to_entries[]|{name:.key,value:(.value|tostring)}]},labels:(.labels//{})}}')" \
+              && echo "    ✓ truenas.json" || echo "    ✗ truenas API failed"
+            done
+          done
