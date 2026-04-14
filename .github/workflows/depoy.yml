@@ -38,34 +38,49 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup SOPS
         uses: nhedger/setup-sops@v2
-      - name: Deploy
+      - name: Decrypt Files
         env:
           SOPS_AGE_KEY: ${{ secrets[format('AGE_KEY_{0}', matrix.target)] }}
         run: |
-          set -euo pipefail
-          for app_dir in "${{ matrix.target }}"/*/; do
-            [ -d "$app_dir" ] || continue
-            APP=$(basename "$app_dir")
-            echo "── $APP"
-            for container_dir in "$app_dir"*/; do
-              [ -d "$container_dir" ] || continue
-              CONTAINER=$(basename "$container_dir")
-              echo "  ▸ $CONTAINER"
-              find "$container_dir" -type f ! -name "truenas.json" | while read -r f; do
-                sops --decrypt "$f" > /tmp/decrypted 2>/dev/null \
-                  || cp "$f" /tmp/decrypted
-                docker inspect "$CONTAINER" &>/dev/null \
-                  && docker cp /tmp/decrypted "$CONTAINER:/${f#$container_dir}" \
-                  && echo "    ✓ /${f#$container_dir}" || echo "    ⚠ $CONTAINER not running"
-              done
-              [ -f "${container_dir}truenas.json" ] || continue
-              CONFIG=$(sops --decrypt "${container_dir}truenas.json" 2>/dev/null \
-                || cat "${container_dir}truenas.json")
-              curl -fks \
-                -H "Authorization: Bearer $TRUENAS_API_KEY" \
-                -H "Content-Type: application/json" \
-                -X PUT "$TRUENAS_HOST/api/v2.0/app/$CONTAINER" \
-                -d "$(echo "$CONFIG" | jq '{values:{containerConfig:{env: [.env//{}|to_entries[]|{name:.key,value:(.value|tostring)}]},labels:(.labels//{})}}')" \
-              && echo "    ✓ truenas.json" || echo "    ✗ truenas API failed"
-            done
+          find "${{ matrix.target }}" -type f | while read -r f; do
+            sops --decrypt "$f" > "$f.dec" 2>/dev/null || cp "$f" "$f.dec"
+          done
+      - name: Deploy Compose Apps
+        run: |
+          find "${{ matrix.target }}" -maxdepth 2 -name "compose.yaml.dec" | while read -r f; do
+            APP=$(basename $(dirname "$f"))
+            curl -fks \
+              -H "Authorization: Bearer $TRUENAS_API_KEY" \
+              -H "Content-Type: application/json" \
+              -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" \
+              -d "$(jq -n --arg c "$(cat $f)" '{custom_app:true,custom_compose_config_string:$c}')" \
+            2>/dev/null && echo "✓ $APP updated" && continue
+            curl -fks \
+              -H "Authorization: Bearer $TRUENAS_API_KEY" \
+              -H "Content-Type: application/json" \
+              -X POST "$TRUENAS_HOST/api/v2.0/app" \
+              -d "$(jq -n --arg name "$APP" --arg c "$(cat $f)" '{app_name:$name,custom_app:true,custom_compose_config_string:$c}')" \
+            && echo "✓ $APP created" || echo "✗ $APP failed"
+          done
+      - name: Push Config Files
+        run: |
+          find "${{ matrix.target }}" -mindepth 3 -type f ! -name "compose.yaml*" ! -name "truenas.json*" -name "*.dec" | while read -r f; do
+            original="${f%.dec}"
+            container_dir=$(echo "$original" | cut -d'/' -f1-3)/
+            CONTAINER=$(basename $(dirname "$container_dir"))
+            docker inspect "$CONTAINER" &>/dev/null \
+              && docker cp "$f" "$CONTAINER:/${original#$container_dir}" \
+              && echo "✓ $CONTAINER:/${original#$container_dir}" \
+              || echo "⚠ $CONTAINER not running"
+          done
+      - name: Update App Environment & Labels
+        run: |
+          find "${{ matrix.target }}" -name "truenas.json.dec" | while read -r f; do
+            CONTAINER=$(basename $(dirname "$f"))
+            curl -fks \
+              -H "Authorization: Bearer $TRUENAS_API_KEY" \
+              -H "Content-Type: application/json" \
+              -X PUT "$TRUENAS_HOST/api/v2.0/app/$CONTAINER" \
+              -d "$(jq '{values:{containerConfig:{env:[.env//{}|to_entries[]|{name:.key,value:(.value|tostring)}]},labels:(.labels//{})}}' "$f")" \
+            && echo "✓ $CONTAINER" || echo "✗ $CONTAINER"
           done
