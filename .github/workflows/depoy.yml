@@ -28,58 +28,50 @@ jobs:
   deploy:
     if: needs.changed-files.outputs.matrix != '[]'
     needs: [changed-files]
-    runs-on: [self-hosted, "${{ matrix.target }}"]
+    runs-on: [self-hosted, "${{ matrix.server }}"]
     strategy:
       fail-fast: false
-      matrix: 
-        target: ${{ fromJSON(needs.changed-files.outputs.matrix) }}
+      matrix:
+        server: ${{ fromJSON(needs.changed-files.outputs.matrix) }}
+    env:
+      SERVER: ${{ matrix.server }}
+      SOPS_AGE_KEY: ${{ secrets[format('AGE_KEY_{0}', matrix.server)] }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Setup SOPS
         uses: nhedger/setup-sops@v2
       - name: Decrypt Files
-        env:
-          SOPS_AGE_KEY: ${{ secrets[format('AGE_KEY_{0}', matrix.target)] }}
-        run: |
-          find "${{ matrix.target }}" -type f | while read -r f; do
-            sops --decrypt "$f" > "$f.dec" 2>/dev/null || cp "$f" "$f.dec"
-          done
+        run: find "$SERVER" -type f | xargs grep -l 'sops:' | xargs -r sops --decrypt --in-place
       - name: Deploy Compose Apps
         run: |
-          find "${{ matrix.target }}" -maxdepth 2 -name "compose.yaml.dec" | while read -r f; do
+          find "$SERVER" -maxdepth 2 -name "compose.json" | while read -r f; do
             APP=$(basename "$(dirname "$f")")
-            BODY=$(jq -n --arg c "$(cat "$f")" '{custom_app:true,custom_compose_config_string:$c}')
-            curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" \
-              -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" -d "$BODY" 2>/dev/null \
-              && echo "✓ $APP updated" \
-              || curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" \
-                -X POST "$TRUENAS_HOST/api/v2.0/app" \
-                -d "$(jq -n --arg name "$APP" --arg c "$(cat "$f")" \
-                  '{app_name:$name,custom_app:true,custom_compose_config_string:$c}')" \
-              && echo "✓ $APP created" || echo "✗ $APP failed"
+            if curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" -d @"$f"; then
+              echo "✓ $APP updated"
+            else
+              curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" -X POST "$TRUENAS_HOST/api/v2.0/app" -d @"$f"
+              echo "✓ $APP created"
+            fi
           done
       - name: Push Config Files
         run: |
-          find "${{ matrix.target }}" -mindepth 3 -type f -name "*.dec" \
-            ! -name "compose.yaml.dec" ! -name "truenas.json.dec" \
-          | while read -r f; do
-            original="${f%.dec}"
-            container_dir="$(echo "$original" | cut -d'/' -f1-3)/"
-            CONTAINER=$(basename "$(dirname "$container_dir")")
-            docker inspect "$CONTAINER" &>/dev/null \
-              && docker cp "$f" "$CONTAINER:/${original#"$container_dir"}" \
-              && echo "✓ $CONTAINER:/${original#"$container_dir"}" \
-              || echo "⚠ $CONTAINER not running"
+          find "$SERVER" -mindepth 3 -type f ! -name "compose.yaml" ! -name "truenas.json" | while read -r f; do
+            CONTAINER_DIR="$(echo "$f" | cut -d'/' -f1-3)/"
+            APP=$(basename "$(dirname "$CONTAINER_DIR")")
+            SERVICE=$(basename "$CONTAINER_DIR")
+            CONTAINER=$(docker ps --format '{{.Names}}' | grep "^ix-${APP}-${SERVICE}-")
+            if [ -n "$CONTAINER" ]; then
+              docker cp "$f" "$CONTAINER:/${f#"$CONTAINER_DIR"}"
+              echo "✓ $CONTAINER:/${f#"$CONTAINER_DIR"}"
+            else
+              echo "⚠ no container found matching ix-${APP}-${SERVICE}-*"
+            fi
           done
-      - name: Update App Environment & Labels
+      - name: Update App Environments & Labels
         run: |
-          find "${{ matrix.target }}" -name "truenas.json.dec" | while read -r f; do
-            CONTAINER=$(basename "$(dirname "$f")")
-            curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" \
-              -X PUT "$TRUENAS_HOST/api/v2.0/app/$CONTAINER" \
-              -d "$(jq '{values:{containerConfig:{
-                env:[.env//{}|to_entries[]|{name:.key,value:(.value|tostring)}]},
-                labels:(.labels//{})}}' "$f")" \
-            && echo "✓ $CONTAINER" || echo "✗ $CONTAINER"
+          find "$SERVER" -name "truenas.json" | while read -r f; do
+            APP=$(basename "$(dirname "$f")")
+            curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" -d @"$f"
+            echo "✓ $APP"
           done
