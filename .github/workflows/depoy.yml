@@ -48,39 +48,38 @@ jobs:
       - name: Deploy Compose Apps
         run: |
           find "${{ matrix.target }}" -maxdepth 2 -name "compose.yaml.dec" | while read -r f; do
-            APP=$(basename $(dirname "$f"))
-            curl -fks \
-              -H "Authorization: Bearer $TRUENAS_API_KEY" \
-              -H "Content-Type: application/json" \
-              -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" \
-              -d "$(jq -n --arg c "$(cat $f)" '{custom_app:true,custom_compose_config_string:$c}')" \
-            2>/dev/null && echo "✓ $APP updated" && continue
-            curl -fks \
-              -H "Authorization: Bearer $TRUENAS_API_KEY" \
-              -H "Content-Type: application/json" \
-              -X POST "$TRUENAS_HOST/api/v2.0/app" \
-              -d "$(jq -n --arg name "$APP" --arg c "$(cat $f)" '{app_name:$name,custom_app:true,custom_compose_config_string:$c}')" \
-            && echo "✓ $APP created" || echo "✗ $APP failed"
+            APP=$(basename "$(dirname "$f")")
+            BODY=$(jq -n --arg c "$(cat "$f")" '{custom_app:true,custom_compose_config_string:$c}')
+            curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" \
+              -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" -d "$BODY" 2>/dev/null \
+              && echo "✓ $APP updated" \
+              || curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" \
+                -X POST "$TRUENAS_HOST/api/v2.0/app" \
+                -d "$(jq -n --arg name "$APP" --arg c "$(cat "$f")" \
+                  '{app_name:$name,custom_app:true,custom_compose_config_string:$c}')" \
+              && echo "✓ $APP created" || echo "✗ $APP failed"
           done
       - name: Push Config Files
         run: |
-          find "${{ matrix.target }}" -mindepth 3 -type f ! -name "compose.yaml*" ! -name "truenas.json*" -name "*.dec" | while read -r f; do
+          find "${{ matrix.target }}" -mindepth 3 -type f -name "*.dec" \
+            ! -name "compose.yaml.dec" ! -name "truenas.json.dec" \
+          | while read -r f; do
             original="${f%.dec}"
-            container_dir=$(echo "$original" | cut -d'/' -f1-3)/
-            CONTAINER=$(basename $(dirname "$container_dir"))
+            container_dir="$(echo "$original" | cut -d'/' -f1-3)/"
+            CONTAINER=$(basename "$(dirname "$container_dir")")
             docker inspect "$CONTAINER" &>/dev/null \
-              && docker cp "$f" "$CONTAINER:/${original#$container_dir}" \
-              && echo "✓ $CONTAINER:/${original#$container_dir}" \
+              && docker cp "$f" "$CONTAINER:/${original#"$container_dir"}" \
+              && echo "✓ $CONTAINER:/${original#"$container_dir"}" \
               || echo "⚠ $CONTAINER not running"
           done
       - name: Update App Environment & Labels
         run: |
           find "${{ matrix.target }}" -name "truenas.json.dec" | while read -r f; do
-            CONTAINER=$(basename $(dirname "$f"))
-            curl -fks \
-              -H "Authorization: Bearer $TRUENAS_API_KEY" \
-              -H "Content-Type: application/json" \
+            CONTAINER=$(basename "$(dirname "$f")")
+            curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" \
               -X PUT "$TRUENAS_HOST/api/v2.0/app/$CONTAINER" \
-              -d "$(jq '{values:{containerConfig:{env:[.env//{}|to_entries[]|{name:.key,value:(.value|tostring)}]},labels:(.labels//{})}}' "$f")" \
+              -d "$(jq '{values:{containerConfig:{
+                env:[.env//{}|to_entries[]|{name:.key,value:(.value|tostring)}]},
+                labels:(.labels//{})}}' "$f")" \
             && echo "✓ $CONTAINER" || echo "✗ $CONTAINER"
           done
