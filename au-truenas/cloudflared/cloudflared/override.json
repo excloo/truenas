@@ -1,0 +1,37 @@
+{
+	"values": {
+		"containerConfig": {
+			"env": [
+				{
+					"name": "ENC[AES256_GCM,data:nSh7gkeBmax1EEOoJw==,iv:/1FKhZ8BffYyU6mY3YKx7RfwLFKEGyAKuHTsPr3tC50=,tag:nzYYI8PFJTESSm+c7LZSWA==,type:str]",
+					"value": "ENC[AES256_GCM,data:bZOIMCptmEgGoCFmpWyeTIMkT7RQADrfTrmaPklmrFoEJgWRg6MIyEM=,iv:CV4r2M1VCVHaelQ+yvQDv31fZGS6R1IM+HfwVkI7Hok=,tag:qRb4/X/t7fXh4SFcnRMTIA==,type:str]"
+				},
+				{
+					"name": "ENC[AES256_GCM,data:xCjtH1XBfW9wG+GufQ==,iv:FyagczTShdw/rSGzTPCL6qrbaHf0WdCcBctgW6FTLME=,tag:VLh4GS3c2qqAemOmwPFeGQ==,type:str]",
+					"value": "ENC[AES256_GCM,data:68f7qPC+ghs9YET3ZQul,iv:D33eo6ivdrlEk9Si36ZbXvgqhufWUpBpKjUNFuSDndU=,tag:UaDyMK5ZvN9ZkW1I8ds6bg==,type:str]"
+				},
+				{
+					"name": "ENC[AES256_GCM,data:baJNhg4r96X81yWotQ==,iv:9A/PArE+qllCKrB2mdTEWsIJJmiVDphxdgCotP6ZyO8=,tag:s07yhv2eb/Bono4CkUmYHg==,type:str]",
+					"value": "ENC[AES256_GCM,data:e7ay/913UPLAsJ4=,iv:dBYmT9gvmnTRUpwWPqahdNYOfirPDuy6WJILMUwbKN4=,tag:/9vg4IUm3svV1sDySk2fCQ==,type:str]"
+				}
+			],
+			"labels": {
+				"homepage.href": "ENC[AES256_GCM,data:bWIy2cxh8/I+jkcri4TWfu5sMAq/Wid2vm9bqwyCVAtn09j4+HD5zUs=,iv:Wiy+yOVTrkfFAIdTadmccyGMB8TnA2w9XwZMRKcPUvU=,tag:T0EH7oBGgvqVt+I8dazDIw==,type:str]",
+				"homepage.icon": "ENC[AES256_GCM,data:k7mXDF1ckmdE7qIdh8Qm,iv:A/izvPYLhwu0nmgpvkkwozdO/iBvMCl9iihdK60FN4Y=,tag:HbRnddAljYMPXy6iZ8BFeQ==,type:str]",
+				"homepage.name": "ENC[AES256_GCM,data:dU2BZmIdRCOHYsU=,iv:xmAGKMNN344zJ/tHA2OukhTBWV21x4CCWIWydO3jTiQ=,tag:g7nQHlU8aiTCbheCMdq5pQ==,type:str]"
+			}
+		}
+	},
+	"sops": {
+		"age": [
+			{
+				"recipient": "age17vusple0kh0vevgx7lxcanvcjrn88qphf44s7246rra0ydhnm9msy2dh23",
+				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBIQUFhbWNtV04yNFJhb292\nWTJkRTJGVTBtdEtYQVB2NFNDNjJXMEV5WnpNCjZhUkFEVC8randPMUFvMXdyMUNn\nSzgvSTNiaU9xamFoN05ZZUtpeE1waU0KLS0tIDBLbEJ3U3QyQ1RzWFNqNFNNVENZ\nNVBMRU14M211M3puN1dDWEJWTFFibDQK28g/UGwqoo2t2lQefvDbnvrJpiHckCTO\nDB16k/bJCWMvioa0AjVrmdWTEx26ImFBdE+UH9upmSD6RaJOcFGdWw==\n-----END AGE ENCRYPTED FILE-----\n"
+			}
+		],
+		"lastmodified": "2026-04-15T03:13:23Z",
+		"mac": "ENC[AES256_GCM,data:TyN/b0q5WEbx9kqj0wpwTIFRZ+TQ12ffLvT54fdOnc2W40dZq2Uj8q9kDBWXhbMyiokuBhetz9vZ6ul1Fjj2aSGp5EN36FKVuMdTBqFCV/8cXEWPLF7TR5wTWmfwBQwhc4W+OxmbfSMA+OOE4DTEtutWmBbPCQ+0ffk3kjGh7J4=,iv:Z9UCTuf8rbD3Ev1he8O3IbfbmYWmcVHmtc/+qJt6kc0=,tag:ZWsnuiRaCtw02/2zO4kGyQ==,type:str]",
+		"unencrypted_suffix": "_unencrypted",
+		"version": "3.12.1"
+	}
+}
