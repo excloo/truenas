@@ -4,26 +4,42 @@ on:
   push:
     paths:
       - '**'
+  workflow_dispatch:
+    inputs:
+      path:
+        description: 'Server to deploy or leave empty for all'
+        required: false
 
 jobs:
   changed-files:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.changed-files.outputs.all_changed_files }}
+      matrix: ${{ steps.changed-files.outputs.all_changed_files || steps.manual.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Changed Files
-        uses: tj-actions/changed-files@v47
         id: changed-files
+        if: github.event_name == 'push'
+        uses: tj-actions/changed-files@v47
         with:
           dir_names: true
           dir_names_max_depth: 1
           dir_names_exclude_current_dir: true
           files_ignore: '.*/**'
           matrix: true
+      - name: Manual Files
+        id: manual
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ -n "${{ inputs.path }}" ]; then
+            echo "matrix=[\"${{ inputs.path }}\"]" >> $GITHUB_OUTPUT
+          else
+            DIRS=$(find . -maxdepth 1 -mindepth 1 -type d ! -name '.*' -printf '"%f",' | sed 's/,$//')
+            echo "matrix=[$DIRS]" >> $GITHUB_OUTPUT
+          fi
 
   deploy:
     if: needs.changed-files.outputs.matrix != '[]'
@@ -51,7 +67,7 @@ jobs:
         run: |
           find "$SERVER" -maxdepth 2 -name "compose.json" | while read -r f; do
             APP=$(basename "$(dirname "$f")")
-            if midclt call app.get_instance "$APP"; then
+            if midclt call app.get_instance "$APP" > /dev/null; then
               midclt call app.update "$APP" "$(cat "$f")"
               echo "✓ $APP updated"
             else
