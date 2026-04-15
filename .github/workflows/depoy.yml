@@ -67,11 +67,11 @@ jobs:
         run: |
           find "$SERVER" -maxdepth 2 -name "compose.json" | while read -r f; do
             APP=$(basename "$(dirname "$f")")
-            if midclt call app.get_instance "$APP" > /dev/null; then
-              midclt call app.update "$APP" "$(cat "$f")"
+            if midclt call app.get_instance "$APP" > /dev/null 2>&1; then
+              midclt call app.update "$APP" "$(cat "$f")" > /dev/null
               echo "✓ $APP updated"
             else
-              midclt call app.create "$(cat "$f")"
+              midclt call app.create "$(cat "$f")" > /dev/null
               echo "✓ $APP created"
             fi
           done
@@ -93,6 +93,6 @@ jobs:
         run: |
           find "$SERVER" -name "override.json" | while read -r f; do
             APP=$(basename "$(dirname "$(dirname "$f")")")
-            midclt call app.update "$APP" "$(cat "$f")"
+            midclt call app.update "$APP" "$(cat "$f")" > /dev/null
             echo "✓ $APP"
           done
