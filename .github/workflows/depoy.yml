@@ -39,24 +39,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Setup SOPS
+      - name: Setup sops
         uses: nhedger/setup-sops@v2
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8
+      - name: Setup midclt
+        run: uv tool install git+https://github.com/truenas/api_client.git
       - name: Decrypt Files
         run: find "$SERVER" -type f | xargs grep -l 'sops:' | xargs -r sops --decrypt --in-place
       - name: Deploy Compose Apps
         run: |
           find "$SERVER" -maxdepth 2 -name "compose.json" | while read -r f; do
             APP=$(basename "$(dirname "$f")")
-            if curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" -d @"$f"; then
+            if midclt call app.get_instance "$APP"; then
+              midclt call app.update "$APP" "$(cat "$f")"
               echo "✓ $APP updated"
             else
-              curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" -X POST "$TRUENAS_HOST/api/v2.0/app" -d @"$f"
+              midclt call app.create "$(cat "$f")"
               echo "✓ $APP created"
             fi
           done
       - name: Push Config Files
         run: |
-          find "$SERVER" -mindepth 3 -type f ! -name "compose.yaml" ! -name "override.json" | while read -r f; do
+          find "$SERVER" -mindepth 3 -type f ! -name "compose.json" ! -name "override.json" | while read -r f; do
             CONTAINER_DIR="$(echo "$f" | cut -d'/' -f1-3)/"
             APP=$(basename "$(dirname "$CONTAINER_DIR")")
             SERVICE=$(basename "$CONTAINER_DIR")
@@ -71,7 +76,7 @@ jobs:
       - name: Update App Environments & Labels
         run: |
           find "$SERVER" -name "override.json" | while read -r f; do
-            APP=$(basename "$(dirname "$f")")
-            curl -fks -H "Authorization: Bearer $TRUENAS_API_KEY" -H "Content-Type: application/json" -X PUT "$TRUENAS_HOST/api/v2.0/app/$APP" -d @"$f"
+            APP=$(basename "$(dirname "$(dirname "$f")")")
+            midclt call app.update "$APP" "$(cat "$f")"
             echo "✓ $APP"
           done
