@@ -64,7 +64,7 @@ jobs:
       - name: Setup midclt
         run: uv tool install git+https://github.com/truenas/api_client.git
       - name: Decrypt Files
-        run: find "$SERVER" -type f | xargs grep -l 'sops:' | xargs -r sops --decrypt --in-place
+        run: find "$SERVER" -type f | xargs grep -l 'BEGIN AGE ENCRYPTED FILE' | xargs -r sops --decrypt --in-place
       - name: Deploy Compose Apps
         run: |
           find "$SERVER" -maxdepth 2 -name "compose.json" | while read -r f; do
