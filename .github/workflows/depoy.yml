@@ -28,7 +28,7 @@ jobs:
   deploy:
     if: needs.changed-files.outputs.matrix != '[]'
     needs: [changed-files]
-    runs-on: [self-hosted, "${{ matrix.server }}"]
+    runs-on: [self-hosted, "${{ matrix.server }}-privileged"]
     strategy:
       fail-fast: false
       matrix:
