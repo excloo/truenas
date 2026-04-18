@@ -1,17 +1,18 @@
 {
 	"values": {
 		"containerConfig": {
+			"environment": {},
 			"labels": {
-				"homepage.description": "ENC[AES256_GCM,data:eUGt8Rp4k6JpXD6qxFWh3Q==,iv:WgLqThCgAuhIjh/KeiULhi2N9gdLNj1dnlgs0hQULmY=,tag:5z3KKf73ixUPwgn/cAP/sw==,type:str]",
-				"homepage.group": "ENC[AES256_GCM,data:MxUcVV0GNUM=,iv:+zTwXJtXYIbYSnjU8DpFZV+6iuPPBSberxNkhsfQRyM=,tag:iXsUwsgCcdDUlwQ4os6ixA==,type:str]",
-				"homepage.href": "ENC[AES256_GCM,data:ATgwo2WQSECTjV3hat3HQUcKvA6E9kkfJ0CS3QyQVkWM/bHwxVt8SWo=,iv:gHI6NC8PfTZOfDOKsZ0G4Tg1ouNQXPry87MpfhvGO/o=,tag:e2w/rRbDaQh1t/SSi1+gqQ==,type:str]",
-				"homepage.icon": "ENC[AES256_GCM,data:Xzg0OGla9uV2i+I=,iv:arOhv/6LuOPOTIL3eCNSiD2z5cHqO7WBt45LPXKXFn4=,tag:Eq92IesSDUPTHps4Lnxxvg==,type:str]",
-				"homepage.name": "ENC[AES256_GCM,data:8faGehHV0MsEsus=,iv:623O7wHdPCfCdGibHqfKo1eQ7TiNLr6m71J6mpHrHNc=,tag:nWlzUHjIU6dkcCLUE6m49g==,type:str]",
-				"traefik.enable": "ENC[AES256_GCM,data:22lK+A==,iv:dXn8xPy7X5nSmZbSp9JbvrrhdEdH0xBfrlL7Uiq5GVM=,tag:A35mgQRB/6Ly586ZgMu5tQ==,type:str]",
-				"traefik.http.routers.vaultwarden.middlewares": "ENC[AES256_GCM,data:JKRwoUvcaV4cixiKblFqIsXqmXk=,iv:lp50aapLPMjK9nAZ0vGI7gwgHoFnZ5WiVtCVJG3N9MI=,tag:Fe4wk8cpHbGMWw6sF+TNog==,type:str]",
-				"traefik.http.routers.vaultwarden.rule": "ENC[AES256_GCM,data:h6BmApO1V8PMAYJyvYx4cNW4WrwKcI1xmD3ATyXWyNaByJJ0LoS9Xv8=,iv:F476LJqmioLQgfyWUojsgxQjs1cXKF59Aaluy7b+Y4I=,tag:cCcV7Dpd2TWrRhBRc6C/hA==,type:str]",
-				"traefik.http.services.vaultwarden.loadbalancer.server.port": "ENC[AES256_GCM,data:kdzTD0g=,iv:DBNQ05oqzIFeWyiVguojFVp1U3QbcMkPNC7DsmqC/dU=,tag:apw7YMWsGjVS7M/kyyUJNQ==,type:str]",
-				"traefik.http.services.vaultwarden.loadbalancer.server.scheme": "ENC[AES256_GCM,data:QWEAzks=,iv:idN6L5lmWfxP0YwQTjjiNHEA/V4yl5rJG4/6TZDClxs=,tag:nqUj4wbFT6MkBCIFfSfjPA==,type:str]"
+				"homepage.description": "ENC[AES256_GCM,data:5TRg3s1aC/oP8cf8LXv8Bw==,iv:twqWzO727dy33mRXVTj1XbO0Okk9OwZ9RiRDGewrMoM=,tag:AqN4M8yY4s740chBWjwtQw==,type:str]",
+				"homepage.group": "ENC[AES256_GCM,data:U7iaYfDB4Og=,iv:hWzL6XDsIbLqurLXI9BuEsvYTC0GD9hA/h411ZCVF0Q=,tag:ghHDRKKR1O66DUSvXF5Fbg==,type:str]",
+				"homepage.href": "ENC[AES256_GCM,data:WSK8d2CacujD+pI+yKaWo+DlmP1LXF0X9F/od0g2vXdhBR2vSqfBgUA=,iv:Lbg2dyQiNNw/OEMjBPn9oIT4B4Pkz9JGwse5SdQtMhA=,tag:0sQhYOo0FbltyZmMx7ycIg==,type:str]",
+				"homepage.icon": "ENC[AES256_GCM,data:oFKAB1WdsNvxQrI=,iv:qv+bqQUHCr3PBQG/myytfCYWBr/UMZ5vBiWR/hMdnis=,tag:PBW545GxmRFkWRdZVzZfhA==,type:str]",
+				"homepage.name": "ENC[AES256_GCM,data:qE6QQSug+GVgxBs=,iv:Zd9nSNIlUJEE3eGqZp+B4q8Rk/1OUJSKQQeDc1hZchg=,tag:dia+N37TI0CnSxzwEGffKg==,type:str]",
+				"traefik.enable": "ENC[AES256_GCM,data:wR1YYg==,iv:Vj15sqMgf7ZSScokiqf6h2i+vqIfBW9s876fG6WexNA=,tag:wWe5qu0AaFmbzlmKcgp3Yw==,type:str]",
+				"traefik.http.routers.vaultwarden.middlewares": "ENC[AES256_GCM,data:n8TpY4hFFYX2ai65lqUMJ7i6rH8=,iv:P8FTYQDEKTX7R+zHLSPhucZVb0iBZUblDv9h0RR+72E=,tag:GGhhNCnau7wV3DlsOijCwA==,type:str]",
+				"traefik.http.routers.vaultwarden.rule": "ENC[AES256_GCM,data:ewbUra6feQagPnTtipcdluqx4MR4FEJ00uiegl0GB8c7Ax0qUb+BnTk=,iv:hSQdNhA8fPnCFO6dzb4USBmmCjIasjeY8ar3sjvSAVI=,tag:tIBgHYNUyB/JaFHJkZK9Ww==,type:str]",
+				"traefik.http.services.vaultwarden.loadbalancer.server.port": "ENC[AES256_GCM,data:sIYYw9Q=,iv:8QfRw0OVbgQYsAzZdrVfSpWMYzrDt1qY4/5dVso4+2A=,tag:7yJwPjVyKsCGuIiJ+w+tfw==,type:str]",
+				"traefik.http.services.vaultwarden.loadbalancer.server.scheme": "ENC[AES256_GCM,data:0aI67aY=,iv:CXX1q720kX8HkOfJmVSo55C1FWmsQMR0/sRRvhX5oKE=,tag:r7xXHB8IhWzW1moEALUeNQ==,type:str]"
 			}
 		}
 	},
@@ -19,11 +20,11 @@
 		"age": [
 			{
 				"recipient": "age1efn67qrhcfhdjycg0sckmnpytcm765ndwys0zfg8dth2lqqss93qk8tsjd",
-				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBOZTVnbS9HUnZxNWNuaTYw\nVmFHc2ticzFic2VvdHlBc2szSktlTUVkeEdJCkM2aDlsL3VsRGpEWnpBWDduMVlt\nTEVNMENmS2RlUlY5WGlGaXJHNFFpRlEKLS0tIENuVkk3Q3o4QkZvbklLZ1VONVpm\nR3FCZWMvMXRMWGdXVll5UjA4YmtFMm8KYSNSSCZeG6o8C6P0RLsaTA0iClnABn9R\nGgkSsVv3wWGlWBfdql4zJMw0/RtRfmY9pQXYDKZo1aW0P7xCUZaSCw==\n-----END AGE ENCRYPTED FILE-----\n"
+				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzemtUbFFUb3p2UEFXRktr\nYjRZeVIzbjNrOUw5WWNmZzNGNkhzaG55UGc0ClZDQUZnMCs2dkNQY2lEZVJQVnh1\nVVpDNkZBS29OVEJ1eTl4WTVnZS9xbEEKLS0tIFYwNmRZZTgwM0lPb3pwT0JvckVF\nVXFwYjJjNWRZUkxUNkpjWnpnZ3Q2dWMKQJha6679K2B4YVgXl7CwdVmyasUE/5Er\nnlvtp16wRnonp+w8rWYsrOiUzb8VtT7KxIJ5uc5oxHi2yyf5xGxpnA==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2026-04-18T02:24:33Z",
-		"mac": "ENC[AES256_GCM,data:dE9H8pyUwFJ54nlJergZZ8E8YPd4MlkqKJNCwfNX43MeOqS2vkHf8HZMKy2bvYbs3a0zxrSj5gN5ncfvjBICvCerxnRRLNfGhqTeiqP/IhzYIA/Na4uDY19wnYqtLDVekXxpd3gtR+7E90FDUMLpVm+VhtzeDFTqDBpmFMhY3Kc=,iv:xWenxGyxfjZ3jHKgkbtBN7o9mQF3kLROxvA2z07MH08=,tag:6o1yBve/U0KP6C9PylfrxQ==,type:str]",
+		"lastmodified": "2026-04-18T03:20:21Z",
+		"mac": "ENC[AES256_GCM,data:Dn56Sgqlv1DHL7WmctBnRiodlgpgAwdLKnlqXUzPcC/muymX+6q9EF1Z+LfO6KaJZry2ViTq7UxOfWYlQrJtUBfoIBrU3FEGFvav+50rIetg89+3PGHpxg9/r67yJKizrt76KKFNBtRD4r5EQFYHUsi7/O7vBU4Ga414vGQo604=,iv:s1x0NUJhdF0aFzpxzJb2SWOYwgq17+xF94bTiDT6xSo=,tag:LKrDbG5c9d8dGJiWRcGZwQ==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.12.1"
 	}
