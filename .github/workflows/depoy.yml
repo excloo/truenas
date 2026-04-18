@@ -3,11 +3,11 @@ name: Deploy
 on:
   push:
     paths:
-      - '**'
+      - "**"
   workflow_dispatch:
     inputs:
       path:
-        description: 'Server to deploy or leave empty for all'
+        description: "Server to deploy or leave empty for all"
         required: false
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
           dir_names: true
           dir_names_max_depth: 1
           dir_names_exclude_current_dir: true
-          files_ignore: '.*/**'
+          files_ignore: ".*/**"
           matrix: true
       - name: Manual Files
         id: manual
@@ -47,8 +47,8 @@ jobs:
     name: Deploy
     needs: [changed-files]
     runs-on: [self-hosted, "${{ matrix.server }}-privileged"]
-    concurrency:                  
-      cancel-in-progress: true                              
+    concurrency:
+      cancel-in-progress: true
       group: deploy-${{ matrix.server }}
     defaults:
       run:
