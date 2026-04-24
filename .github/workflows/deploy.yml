@@ -61,7 +61,7 @@ jobs:
     if: needs.changed-files.outputs.matrix != '[]'
     name: Deploy
     needs: [changed-files]
-    runs-on: [self-hosted, "${{ matrix.target.server }}-privilaged"]
+    runs-on: [self-hosted, "${{ matrix.target.server }}-privileged"]
     concurrency:
       cancel-in-progress: true
       group: deploy-${{ matrix.target.server }}
