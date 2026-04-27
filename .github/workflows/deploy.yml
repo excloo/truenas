@@ -79,7 +79,12 @@ jobs:
       - name: Setup midclt
         run: uv tool install --python 3.12 git+https://github.com/truenas/api_client.git
       - name: Decrypt Files
-        run: find "$SERVER" -type f | xargs grep -l 'BEGIN AGE ENCRYPTED FILE' | xargs -r sops --decrypt --in-place
+        run: |
+          find "$SERVER" -type f -print0 | while IFS= read -r -d '' f; do
+            if grep -qE 'BEGIN AGE ENCRYPTED FILE|ENC\[AES256_GCM' "$f"; then
+              sops --decrypt --in-place "$f"
+            fi
+          done
       - name: Deploy Services
         run: |
           printf '%s' "$TARGET_PATHS" | jq -r '.[]' | while read -r TARGET_PATH; do
@@ -90,7 +95,6 @@ jobs:
               echo "Deploying catalog service $SERVICE"
               if midclt call app.get_instance "$SERVICE" > /dev/null 2>&1; then
                 PAYLOAD="$(jq -c '{values}' "$TARGET_PATH/app.json")"
-                echo "$PAYLOAD" | jq -c '{labels_containers: [.values.labels[]?.containers], network: .values.network, storage_keys: (.values.storage | keys? // []), value_keys: (.values | keys)}'
                 midclt call -j app.update "$SERVICE" "$PAYLOAD" > /dev/null
                 echo "✓ $SERVICE updated"
               else
