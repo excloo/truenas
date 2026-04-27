@@ -88,11 +88,7 @@ jobs:
             if [ -f "$TARGET_PATH/app.json" ]; then
               echo "Deploying catalog service $SERVICE"
               if midclt call app.get_instance "$SERVICE" > /dev/null 2>&1; then
-                # Desired values are an overlay so stripped values files keep current
-                # TrueNAS defaults and unmanaged chart keys intact.
-                CURRENT="$(midclt call app.config "$SERVICE" | jq -c 'del(.ix_context, .ix_volumes, .ix_certificates, .ix_certificate_authorities)')"
-                VALUES="$(jq -c --argjson current "$CURRENT" '.values as $desired | $current * $desired' "$TARGET_PATH/app.json")"
-                midclt call -j app.update "$SERVICE" "$(jq -c -n --argjson values "$VALUES" '{values: $values}')" > /dev/null
+                midclt call -j app.update "$SERVICE" "$(jq -c '{values}' "$TARGET_PATH/app.json")" > /dev/null
                 echo "✓ $SERVICE updated"
               else
                 echo "$SERVICE not found; creating catalog service"
