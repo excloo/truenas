@@ -1,3 +1,3 @@
-creation_rules:
-  - path_regex: '^au-truenas/'
-    age: age1efn67qrhcfhdjycg0sckmnpytcm765ndwys0zfg8dth2lqqss93qk8tsjd
+"creation_rules":
+- "age": "age1efn67qrhcfhdjycg0sckmnpytcm765ndwys0zfg8dth2lqqss93qk8tsjd"
+  "path_regex": "^au-truenas/"
