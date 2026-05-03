@@ -3,43 +3,64 @@ name: Deploy
 on:
   push:
     paths:
-      - "**"
+      - .github/deploy-request.json
   workflow_dispatch:
     inputs:
-      server:
-        description: "Server to deploy or leave empty for all"
-        required: false
-      service:
-        description: "Service to deploy or leave empty for all"
-        required: false
+      target:
+        description: "Deploy all, a server, a service, or server/service"
 
 concurrency:
-  cancel-in-progress: true
+  cancel-in-progress: false
   group: deploy
 
 jobs:
-  changed-files:
-    name: Build Matrix
+  deployments:
+    name: Select Deployments
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.targets.outputs.targets }}
+      matrix: ${{ steps.deployments.outputs.deployments }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Select Targets
-        id: targets
+      - name: Select Deployments
+        id: deployments
+        env:
+          BEFORE: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TARGET: ${{ inputs.target }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.server }}" ] && [ -n "${{ inputs.service }}" ]; then
-            TARGETS=$(printf '%s\n' "${{ inputs.server }}/${{ inputs.service }}")
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.server }}" ]; then
-            TARGETS=$(find "${{ inputs.server }}" -maxdepth 1 -mindepth 1 -type d -printf '%p\n')
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.service }}" ]; then
-            TARGETS=$(find . -maxdepth 2 -mindepth 2 -type d -name "${{ inputs.service }}" -printf '%P\n')
-          else
-            TARGETS=$(find . -maxdepth 2 -mindepth 2 -type d ! -path './.*' -printf '%P\n')
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ -n "$INPUT_TARGET" ] && ! printf '%s' "$INPUT_TARGET" | grep -Eq '^[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)?$'; then
+            echo "Invalid target: $INPUT_TARGET" >&2
+            exit 1
           fi
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ -z "$INPUT_TARGET" ]; then
+            TARGETS=$(find . -maxdepth 2 -mindepth 2 -type d ! -path './.*' -printf '%P\n')
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ] && printf '%s' "$INPUT_TARGET" | grep -q '/'; then
+            if [ ! -d "$INPUT_TARGET" ]; then
+              echo "No deployment found for target: $INPUT_TARGET" >&2
+              exit 1
+            fi
+            TARGETS=$(printf '%s\n' "$INPUT_TARGET")
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ] && [ -d "$INPUT_TARGET" ]; then
+            TARGETS=$(find "$INPUT_TARGET" -maxdepth 1 -mindepth 1 -type d -printf '%p\n')
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TARGETS=$(find . -maxdepth 2 -mindepth 2 -type d -name "$INPUT_TARGET" -printf '%P\n')
+          else
+            git show "$BEFORE:.github/deploy-request.json" > before.json 2>/dev/null || printf '{"deployments":{}}' > before.json
+            TARGETS=$(jq -r --slurpfile before before.json '
+              ($before[0].deployments // {}) as $old
+              | (.deployments // {})
+              | to_entries[]
+              | select($old[.key] != .value)
+              | .key
+            ' .github/deploy-request.json)
+          fi
+
           printf '%s\n' "$TARGETS" | jq -Rsc '
             [
               split("\n")[]
@@ -54,17 +75,18 @@ jobs:
                 secret_name: ("AGE_KEY_" + (.[0].server | ascii_upcase | gsub("-"; "_"))),
                 server: .[0].server
               })
-          ' | sed 's/^/targets=/' >> "$GITHUB_OUTPUT"
+          ' | sed 's/^/deployments=/' >> "$GITHUB_OUTPUT"
 
   deploy:
-    if: needs.changed-files.outputs.matrix != '[]'
+    if: needs.deployments.outputs.matrix != '[]'
     name: Deploy ${{ matrix.target.server }}
-    needs: [changed-files]
+    needs: [deployments]
     runs-on: [self-hosted, "${{ matrix.target.server }}-privileged"]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
-        target: ${{ fromJSON(needs.changed-files.outputs.matrix) }}
+        target: ${{ fromJSON(needs.deployments.outputs.matrix) }}
     env:
       SERVER: ${{ matrix.target.server }}
       SOPS_AGE_KEY: ${{ secrets[matrix.target.secret_name] }}
